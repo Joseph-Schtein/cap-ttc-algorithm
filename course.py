@@ -5,6 +5,7 @@ class Course:
         self.maximal_capacity = maximal_capacity
         self.capacity = capacity_bounds
         self.students = []
+        self.overlap = []
 
     def student_enrollment(self, student_name):
         if self.capacity > 0:
@@ -15,5 +16,10 @@ class Course:
         else:
             print("We can't enroll you to the course")
 
-    def get_free_space(self):
-        return self.capacity
+    def can_be_enroll(self):
+        return self.capacity > 0
+
+    def to_string(self):
+        print("Course name: ", self.name, ", Capacity: ", self.capacity, "\n" 
+              "Number of student that enroll to this course is: ", len(self.students), "\n"
+              "Student list: ", self.students, "\n", "Overlap courses are: ", self.overlap)

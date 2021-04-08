@@ -35,7 +35,7 @@ class Student:
 
     def __init__(self, name, cardinal_order):
         self.name = name
-        self.need_to_enroll = 5
+        self.need_to_enroll = 2
         self.cardinal_order = cardinal_order
         self.enrolled_courses = []
         self.ordinal_order = {}
@@ -51,9 +51,10 @@ class Student:
     def get_cardinal(self):
         return self.cardinal_order
 
-    def got_enrolled(self):
+    def got_enrolled(self, course_name):
         if self.need_to_enroll > 0:
             self.need_to_enroll -= 1
+            self.cardinal_order[course_name] = 0
 
         else:
             print("Student: ", self.name, " got to the limit of courses enrollment")
