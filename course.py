@@ -11,13 +11,17 @@ class Course:
         if self.capacity > 0:
             self.capacity -= 1
             self.maximal_capacity -= 1
-            self.student.append(student_name)
+            if student_name not in self.students:
+                self.students.append(student_name)
 
         else:
             print("We can't enroll you to the course")
 
     def can_be_enroll(self):
         return self.capacity > 0
+
+    def get_name(self):
+        return self.name
 
     def to_string(self):
         print("Course name: ", self.name, ", Capacity: ", self.capacity, "\n" 

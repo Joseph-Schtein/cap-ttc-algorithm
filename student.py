@@ -33,11 +33,11 @@ def create_ordinal_order(order):
 
 class Student:
 
-    def __init__(self, name, cardinal_order):
+    def __init__(self, name, cardinal_order, enrolled_or_not):
         self.name = name
         self.need_to_enroll = 2
         self.cardinal_order = cardinal_order
-        self.enrolled_courses = []
+        self.enrolled_or_not = enrolled_or_not
         self.ordinal_order = {}
         if check_budget(self.cardinal_order):
             self.ordinal_order = create_ordinal_order(cardinal_order)
@@ -52,14 +52,17 @@ class Student:
         return self.cardinal_order
 
     def got_enrolled(self, course_name):
-        if self.need_to_enroll > 0:
+        if self.need_to_enroll > 0 and self.enrolled_or_not[course_name] == 0:
             self.need_to_enroll -= 1
             self.cardinal_order[course_name] = 0
+            self.enrolled_or_not[course_name] = 1
+
+        elif self.enrolled_or_not[course_name] == 1:
+            print("Student: ", self.name, ", is already enrolled to the course: ", course_name)
 
         else:
             print("Student: ", self.name, " got to the limit of courses enrollment")
 
     def to_string(self):
         print("Student name:", self.name, ", The cardinal order is: ", self.cardinal_order, "\n"
-              "The ordinal is: ", self.ordinal_order, "\n", "The courses that: ", self.name,  " enrolled are: ", self.enrolled_courses, "\n")
-
+              "The ordinal is: ", self.ordinal_order, "\n", "The courses that: ", self.name,  " enrolled are: ", self.enrolled_or_not, "\n")

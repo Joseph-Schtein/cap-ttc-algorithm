@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from course import Course
 from student import Student
 
@@ -30,12 +32,17 @@ def create_matrix(dic_list, course_list, row_number, column_number):
     return course_price
 
 
-def create_students(fixed):
+def create_students(fixed, course_names):
     student_name_list = list(fixed.keys())
     student_rank = list(fixed.values())
     student_list = []
+    course_take = {}
+    for i in range(len(course_names)):
+        course_take[course_names[i]] = 0
+
     for i in range(len(fixed)):
-        stu = Student(student_name_list[i], student_rank[i])
+        course_tmp = deepcopy(course_take)
+        stu = Student(student_name_list[i], student_rank[i], course_tmp)
         student_list.append(stu)
 
     return student_list
@@ -60,19 +67,36 @@ def ready_to_new_round(student_names, ranks):
         index = vector_rank.index(max(vector_rank))
         _data[student_names[i]] = {course_names[index] : vector_rank[index]}
 
-    print(_data)
+    #print(_data)
     return _data
 
 
 def enroll_students(_data, student_list, course_list):
-    amount_of_bidrs = {'a': 0, 'b': 0, 'c': 0, 'd': 0}
+    amount_of_bidrs = {'a': [], 'b': [], 'c': [], 'd': []}
     student_names = list(_data.keys())
     course_bid = list(_data.values())
     for i in range(len(student_list)):
         course = list(course_bid[i].keys())
-        amount_of_bidrs[course[0]] += 1
+        amount_of_bidrs[course[0]].append(student_names[i])
 
-    #for i in range(len(student_list)):
+    for key, value in amount_of_bidrs.items():
+        for j in range(len(course_list)):
+            try_to_enroll = []
+            if key == course_list[j].name and course_list[j].can_be_enroll():
+                try_to_enroll = amount_of_bidrs[key]
+                if course_list[j].capacity >= len(try_to_enroll):   # when we can enroll everyone
+                    if len(try_to_enroll) == 1:
+                        course_list[j].student_enrollment(try_to_enroll[0])
+                        for stu in range(len(student_list)):
+                            if student_list[stu].get_name() == try_to_enroll[0]:
+                                student_list[stu].got_enrolled(course_list[j].get_name())
+
+                    elif len(try_to_enroll) > 1:
+                        for need_to in range(len(try_to_enroll)):
+                            course_list[j].student_enrollment(try_to_enroll[need_to])
+                            for stu in range(len(student_list)):
+                                if student_list[stu].get_name() == try_to_enroll[need_to]:
+                                    student_list[stu].got_enrolled(course_list[j].get_name())
 
 
 def algorithm(fixed, student_list, course_list, rounds=3):
@@ -82,6 +106,10 @@ def algorithm(fixed, student_list, course_list, rounds=3):
         for j in range(len(student_list)):
             round_data = ready_to_new_round(student_names, ranks)
             enroll_students(round_data, student_list, course_list)
+            #update_student_list(student_list, course_list)
+
+    for k in range(len(student_list)):
+        student_list[k].to_string()
 
 
 def main():
@@ -102,10 +130,10 @@ def main():
     row_number = len(ranking)
     column_number = len(ranking[0])
     fixed = create_matrix(ranking, courses, row_number, column_number)
-    student_list = create_students(fixed)
-    student_list[0].to_string()
+    student_list = create_students(fixed, courses)
+    #student_list[0].to_string()
     course_list = create_courses(fixed)
-    course_list[0].to_string()
+    #course_list[0].to_string()
     algorithm(fixed, student_list, course_list)
 
 
