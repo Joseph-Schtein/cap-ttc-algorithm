@@ -65,9 +65,8 @@ def ready_to_new_round(student_names, ranks):
         course_names = list(ranks[i].keys())
         vector_rank = list(ranks[i].values())
         index = vector_rank.index(max(vector_rank))
-        _data[student_names[i]] = {course_names[index] : vector_rank[index]}
+        _data[student_names[i]] = {course_names[index]: vector_rank[index]}
 
-    #print(_data)
     return _data
 
 
@@ -81,10 +80,9 @@ def enroll_students(_data, student_list, course_list):
 
     for key, value in amount_of_bidrs.items():
         for j in range(len(course_list)):
-            try_to_enroll = []
+            try_to_enroll = amount_of_bidrs[key]
             if key == course_list[j].name and course_list[j].can_be_enroll():
-                try_to_enroll = amount_of_bidrs[key]
-                if course_list[j].capacity >= len(try_to_enroll):   # when we can enroll everyone
+                if course_list[j].capacity >= len(try_to_enroll) > 0:   # when we can enroll everyone
                     if len(try_to_enroll) == 1:
                         course_list[j].student_enrollment(try_to_enroll[0])
                         for stu in range(len(student_list)):
@@ -98,6 +96,15 @@ def enroll_students(_data, student_list, course_list):
                                 if student_list[stu].get_name() == try_to_enroll[need_to]:
                                     student_list[stu].got_enrolled(course_list[j].get_name())
 
+            elif course_list[j].capacity == 0:
+                counter = 0
+                for stu in range(len(student_list)):
+                    if len(try_to_enroll) > counter:
+                        if student_list[stu].get_name() == try_to_enroll[counter]:
+                            _data[try_to_enroll[counter]] = \
+                                student_list[stu].get_next_preference(course_list[j].get_name())
+                    counter += 1
+                    print(_data)
 
 def algorithm(fixed, student_list, course_list, rounds=3):
     student_names = list(fixed.keys())
@@ -106,10 +113,7 @@ def algorithm(fixed, student_list, course_list, rounds=3):
         for j in range(len(student_list)):
             round_data = ready_to_new_round(student_names, ranks)
             enroll_students(round_data, student_list, course_list)
-            #update_student_list(student_list, course_list)
 
-    for k in range(len(student_list)):
-        student_list[k].to_string()
 
 
 def main():
@@ -131,9 +135,7 @@ def main():
     column_number = len(ranking[0])
     fixed = create_matrix(ranking, courses, row_number, column_number)
     student_list = create_students(fixed, courses)
-    #student_list[0].to_string()
     course_list = create_courses(fixed)
-    #course_list[0].to_string()
     algorithm(fixed, student_list, course_list)
 
 

@@ -51,6 +51,13 @@ class Student:
     def get_cardinal(self):
         return self.cardinal_order
 
+    def get_next_preference(self, course_name):
+        self.cardinal_order[course_name] = 0
+        index = list(self.cardinal_order).index(max(self.cardinal_order))
+        cardinal_keys = list(self.cardinal_order.keys())
+        cardinal_value = list(self.cardinal_order.values())
+        return {cardinal_keys[index]: cardinal_value[index]}
+
     def got_enrolled(self, course_name):
         if self.need_to_enroll > 0 and self.enrolled_or_not[course_name] == 0:
             self.need_to_enroll -= 1
