@@ -1,18 +1,17 @@
 class Course:
 
-    def __init__(self, course_name, maximal_capacity, capacity_bounds):
+    def __init__(self, course_name, maximal_capacity, capacity_bounds, overlap_courses=[]):
         self.name = course_name
         self.maximal_capacity = maximal_capacity
         self.capacity = capacity_bounds
         self.students = []
-        self.overlap = []
+        self.overlap = overlap_courses
 
-    def student_enrollment(self, student_name):
-        if self.capacity > 0:
+    def student_enrollment(self, student_name, student_element):
+        if self.capacity > 0 and student_name not in self.students and student_element.get_need_to_enroll():
             self.capacity -= 1
             self.maximal_capacity -= 1
-            if student_name not in self.students:
-                self.students.append(student_name)
+            self.students.append(student_name)
 
         else:
             print("We can't enroll you to the course")

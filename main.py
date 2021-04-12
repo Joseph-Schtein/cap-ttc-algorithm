@@ -53,10 +53,23 @@ def create_courses(fixed):
     courses_name_list = list(tmp[0].keys())
     course_list = []
     for i in range(len(courses_name_list)):
-        cou = Course(courses_name_list[i], 3, 2)
-        course_list.append(cou)
+        if i == 0:
+            cou = Course(courses_name_list[i], 3, 2, ["c"])
+            course_list.append(cou)
+
+        elif i == 2:
+            cou = Course(courses_name_list[i], 3, 2, ["a"])
+            course_list.append(cou)
+
+        else:
+            cou = Course(courses_name_list[i], 3, 2, [])
+            course_list.append(cou)
 
     return course_list
+
+
+def check_overlap(try_to_enroll, course_list):
+    return 0
 
 
 def ready_to_new_round(student_names, ranks):
@@ -72,26 +85,29 @@ def ready_to_new_round(student_names, ranks):
 
 def enroll_students(_data, student_list, course_list):
     amount_of_bidrs = {'a': [], 'b': [], 'c': [], 'd': []}
-    student_names = list(_data.keys())
+    student_element = deepcopy(amount_of_bidrs)
     course_bid = list(_data.values())
     for i in range(len(student_list)):
         course = list(course_bid[i].keys())
-        amount_of_bidrs[course[0]].append(student_names[i])
+        amount_of_bidrs[course[0]].append(student_list[i].get_name())
+        student_element[course[0]].append(student_list[i])
 
     for key, value in amount_of_bidrs.items():
         for j in range(len(course_list)):
             try_to_enroll = amount_of_bidrs[key]
-            if key == course_list[j].name and course_list[j].can_be_enroll():
-                if course_list[j].capacity >= len(try_to_enroll) > 0:   # when we can enroll everyone
+            student_object_try = student_element[key]
+            if key == course_list[j].get_name() and course_list[j].can_be_enroll():
+                if course_list[j].capacity >= len(try_to_enroll) > 0:  # when we can enroll everyone
                     if len(try_to_enroll) == 1:
-                        course_list[j].student_enrollment(try_to_enroll[0])
+                        already_overlap = check_overlap(try_to_enroll[0], course_list)
+                        course_list[j].student_enrollment(try_to_enroll[0], student_object_try[0])
                         for stu in range(len(student_list)):
                             if student_list[stu].get_name() == try_to_enroll[0]:
                                 student_list[stu].got_enrolled(course_list[j].get_name())
 
                     elif len(try_to_enroll) > 1:
                         for need_to in range(len(try_to_enroll)):
-                            course_list[j].student_enrollment(try_to_enroll[need_to])
+                            course_list[j].student_enrollment(try_to_enroll[need_to], student_object_try[need_to])
                             for stu in range(len(student_list)):
                                 if student_list[stu].get_name() == try_to_enroll[need_to]:
                                     student_list[stu].got_enrolled(course_list[j].get_name())
@@ -104,7 +120,7 @@ def enroll_students(_data, student_list, course_list):
                             _data[try_to_enroll[counter]] = \
                                 student_list[stu].get_next_preference(course_list[j].get_name())
                     counter += 1
-                    print(_data)
+
 
 def algorithm(fixed, student_list, course_list, rounds=3):
     student_names = list(fixed.keys())
@@ -115,17 +131,16 @@ def algorithm(fixed, student_list, course_list, rounds=3):
             enroll_students(round_data, student_list, course_list)
 
 
-
 def main():
     courses = ["a", "b", "c", "d"]
     ranking = [[{'name': 'Joseph Stein', 'course name': 'a', 'rank': 150},
                 {'name': 'Joseph Stein', 'course name': 'b', 'rank': 50},
                 {'name': 'Joseph Stein', 'course name': 'c', 'rank': 200},
                 {'name': 'Joseph Stein', 'course name': 'd', 'rank': 100}],
-               [{'name': 'Itay Simchayov', 'course name': 'a', 'rank': 130},
+               [{'name': 'Itay Simchayov', 'course name': 'a', 'rank': 110},
                 {'name': 'Itay Simchayov', 'course name': 'b', 'rank': 120},
                 {'name': 'Itay Simchayov', 'course name': 'c', 'rank': 140},
-                {'name': 'Itay Simchayov', 'course name': 'd', 'rank': 110}],
+                {'name': 'Itay Simchayov', 'course name': 'd', 'rank': 130}],
                [{'name': 'Lihi Belfer', 'course name': 'a', 'rank': 250},
                 {'name': 'Lihi Belfer', 'course name': 'b', 'rank': 130},
                 {'name': 'Lihi Belfer', 'course name': 'c', 'rank': 70},
@@ -137,6 +152,13 @@ def main():
     student_list = create_students(fixed, courses)
     course_list = create_courses(fixed)
     algorithm(fixed, student_list, course_list)
+    for i in range(len(student_list)):
+        student_list[i].to_string()
+        print()
+
+    for i in range(len(course_list)):
+        course_list[i].to_string()
+        print()
 
 
 if __name__ == '__main__':
