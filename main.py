@@ -68,8 +68,23 @@ def create_courses(fixed):
     return course_list
 
 
-def check_overlap(try_to_enroll, course_list):
-    return 0
+def check_overlap(student_object, course_object):
+    overlap_courses = course_object.get_overlap_list()
+    if len(overlap_courses) > 0:
+        output = True
+        enroll_status = student_object.get_enrolment_status()
+        for overlap in range(len(overlap_courses)):
+            course_name = overlap_courses[overlap]
+            check = enroll_status[course_name]
+            if check == 1:
+                student_object.get_next_preference(course_object.get_name())
+                if output:
+                    output = False
+
+        return output
+
+    else:
+        return True
 
 
 def ready_to_new_round(student_names, ranks):
@@ -85,7 +100,7 @@ def ready_to_new_round(student_names, ranks):
 
 def enroll_students(_data, student_list, course_list):
     amount_of_bidrs = {'a': [], 'b': [], 'c': [], 'd': []}
-    student_element = deepcopy(amount_of_bidrs)
+    student_element = {'a': [], 'b': [], 'c': [], 'd': []}
     course_bid = list(_data.values())
     for i in range(len(student_list)):
         course = list(course_bid[i].keys())
@@ -98,15 +113,8 @@ def enroll_students(_data, student_list, course_list):
             student_object_try = student_element[key]
             if key == course_list[j].get_name() and course_list[j].can_be_enroll():
                 if course_list[j].capacity >= len(try_to_enroll) > 0:  # when we can enroll everyone
-                    if len(try_to_enroll) == 1:
-                        already_overlap = check_overlap(try_to_enroll[0], course_list)
-                        course_list[j].student_enrollment(try_to_enroll[0], student_object_try[0])
-                        for stu in range(len(student_list)):
-                            if student_list[stu].get_name() == try_to_enroll[0]:
-                                student_list[stu].got_enrolled(course_list[j].get_name())
-
-                    elif len(try_to_enroll) > 1:
-                        for need_to in range(len(try_to_enroll)):
+                    for need_to in range(len(try_to_enroll)):
+                        if check_overlap(student_object_try[need_to], course_list[j]):
                             course_list[j].student_enrollment(try_to_enroll[need_to], student_object_try[need_to])
                             for stu in range(len(student_list)):
                                 if student_list[stu].get_name() == try_to_enroll[need_to]:

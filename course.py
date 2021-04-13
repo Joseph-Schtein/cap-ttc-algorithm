@@ -19,6 +19,9 @@ class Course:
     def can_be_enroll(self):
         return self.capacity > 0
 
+    def get_overlap_list(self):
+        return self.overlap
+
     def get_name(self):
         return self.name
 

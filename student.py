@@ -54,6 +54,9 @@ class Student:
     def get_need_to_enroll(self):
         return self.need_to_enroll
 
+    def get_enrolment_status(self):
+        return self.enrolled_or_not
+
     def get_next_preference(self, course_name):
         self.cardinal_order[course_name] = 0
         index = list(self.cardinal_order).index(max(self.cardinal_order))
