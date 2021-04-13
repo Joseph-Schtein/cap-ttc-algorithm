@@ -111,23 +111,33 @@ def enroll_students(_data, student_list, course_list):
         for j in range(len(course_list)):
             try_to_enroll = amount_of_bidrs[key]
             student_object_try = student_element[key]
-            if key == course_list[j].get_name() and course_list[j].can_be_enroll():
+            if key == course_list[j].get_name() and course_list[j].can_be_enroll(len(try_to_enroll)):
                 if course_list[j].capacity >= len(try_to_enroll) > 0:  # when we can enroll everyone
                     for need_to in range(len(try_to_enroll)):
                         if check_overlap(student_object_try[need_to], course_list[j]):
                             course_list[j].student_enrollment(try_to_enroll[need_to], student_object_try[need_to])
                             for stu in range(len(student_list)):
-                                if student_list[stu].get_name() == try_to_enroll[need_to]:
+                                if student_list[stu].get_name() == try_to_enroll[need_to] and \
+                                        student_list[stu].get_need_to_enroll() != 0:
                                     student_list[stu].got_enrolled(course_list[j].get_name())
 
-            elif course_list[j].capacity == 0:
+                        else:
+                            counter = 0
+                            for stu in range(len(student_list)):
+                                if len(try_to_enroll) > counter:
+                                    _data[try_to_enroll[counter]] = \
+                                        student_list[stu].get_next_preference(course_list[j].get_name())
+                                    counter += 1
+
+            elif key == course_list[j].get_name() and not course_list[j].can_be_enroll(len(try_to_enroll)):
                 counter = 0
                 for stu in range(len(student_list)):
                     if len(try_to_enroll) > counter:
                         if student_list[stu].get_name() == try_to_enroll[counter]:
-                            _data[try_to_enroll[counter]] = \
-                                student_list[stu].get_next_preference(course_list[j].get_name())
-                    counter += 1
+                            if student_list[stu].get_need_to_enroll() != 0:
+                                _data[try_to_enroll[counter]] = \
+                                    student_list[stu].get_next_preference(course_list[j].get_name())
+                                counter += 1
 
 
 def algorithm(fixed, student_list, course_list, rounds=3):
@@ -145,10 +155,10 @@ def main():
                 {'name': 'Joseph Stein', 'course name': 'b', 'rank': 50},
                 {'name': 'Joseph Stein', 'course name': 'c', 'rank': 200},
                 {'name': 'Joseph Stein', 'course name': 'd', 'rank': 100}],
-               [{'name': 'Itay Simchayov', 'course name': 'a', 'rank': 110},
+               [{'name': 'Itay Simchayov', 'course name': 'a', 'rank': 130},
                 {'name': 'Itay Simchayov', 'course name': 'b', 'rank': 120},
                 {'name': 'Itay Simchayov', 'course name': 'c', 'rank': 140},
-                {'name': 'Itay Simchayov', 'course name': 'd', 'rank': 130}],
+                {'name': 'Itay Simchayov', 'course name': 'd', 'rank': 110}],
                [{'name': 'Lihi Belfer', 'course name': 'a', 'rank': 250},
                 {'name': 'Lihi Belfer', 'course name': 'b', 'rank': 130},
                 {'name': 'Lihi Belfer', 'course name': 'c', 'rank': 70},

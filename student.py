@@ -39,8 +39,10 @@ class Student:
         self.cardinal_order = cardinal_order
         self.enrolled_or_not = enrolled_or_not
         self.ordinal_order = {}
+        self.cardinal_utility = 0
         if check_budget(self.cardinal_order):
             self.ordinal_order = create_ordinal_order(cardinal_order)
+            self.cardinal_utility = 0
 
     def get_name(self):
         return self.name
@@ -50,6 +52,9 @@ class Student:
 
     def get_cardinal(self):
         return self.cardinal_order
+
+    def get_cardinal_utility(self):
+        return self.cardinal_utility
 
     def get_need_to_enroll(self):
         return self.need_to_enroll
@@ -67,6 +72,7 @@ class Student:
     def got_enrolled(self, course_name):
         if self.need_to_enroll > 0 and self.enrolled_or_not[course_name] == 0:
             self.need_to_enroll -= 1
+            self.cardinal_utility += self.cardinal_order[course_name]
             self.cardinal_order[course_name] = 0
             self.enrolled_or_not[course_name] = 1
 
@@ -78,4 +84,6 @@ class Student:
 
     def to_string(self):
         print("Student name:", self.name, ", The cardinal order is: ", self.cardinal_order, "\n"
-              "The ordinal is: ", self.ordinal_order, "\n", "The courses that: ", self.name,  " enrolled are: ", self.enrolled_or_not, "\n")
+              "The ordinal is: ", self.ordinal_order, "\n",
+              "The courses that: ", self.name,  " enrolled are: ", self.enrolled_or_not, "\n"
+              "The cardinal utility is: ", self.cardinal_utility)
