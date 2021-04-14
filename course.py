@@ -13,8 +13,8 @@ class Course:
             self.maximal_capacity -= 1
             self.students.append(student_name)
 
-        #else:
-            #print("We can't enroll you to the course")
+        else:
+            print("We can't enroll you to the course")
 
     def can_be_enroll(self, number_of_students):
         return self.capacity >= number_of_students
