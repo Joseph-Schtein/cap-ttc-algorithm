@@ -36,6 +36,7 @@ class Student:
     def __init__(self, name, cardinal_order, enrolled_or_not):
         self.name = name
         self.need_to_enroll = 3
+        self.enrolled_num = 0
         self.cardinal_order = cardinal_order
         self.enrolled_or_not = enrolled_or_not
         self.ordinal_order = {}
@@ -69,10 +70,13 @@ class Student:
         cardinal_value = list(self.cardinal_order.values())
         return {cardinal_keys[index]: cardinal_value[index]}
 
+    def get_number_of_enrollments(self):
+        return self.enrolled_num
+
     def get_current_highest_bid(self):
         index = list(self.cardinal_order).index(max(self.cardinal_order))
         cardinal_value = list(self.cardinal_order.values())
-        return cardinal_value[index]
+        return cardinal_value[index - 1]
 
     def got_enrolled(self, course_name):
         if self.need_to_enroll > 0 and self.enrolled_or_not[course_name] == 0:
@@ -80,6 +84,7 @@ class Student:
             self.cardinal_utility += self.cardinal_order[course_name]
             self.cardinal_order[course_name] = 0
             self.enrolled_or_not[course_name] = 1
+            self.enrolled_num += 1
 
         elif self.enrolled_or_not[course_name] == 1:
             print("Student: ", self.name, ", is already enrolled to the course: ", course_name)
@@ -89,6 +94,8 @@ class Student:
 
     def to_string(self):
         print("Student name:", self.name, ", The cardinal order is: ", self.cardinal_order, "\n"
-              "The ordinal is: ", self.ordinal_order, "\n",
-              "The courses that: ", self.name,  " enrolled are: ", self.enrolled_or_not, "\n"
-              "The cardinal utility is: ", self.cardinal_utility)
+                                                                                            "The ordinal is: ",
+              self.ordinal_order, "\n",
+              "The courses that: ", self.name, " enrolled are: ", self.enrolled_or_not, "\n"
+                                                                                        "The cardinal utility is: ",
+              self.cardinal_utility)

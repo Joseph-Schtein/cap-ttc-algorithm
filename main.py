@@ -98,6 +98,21 @@ def ready_to_new_round(student_names, ranks):
     return _data
 
 
+def second_phase(_data, student_list, course_list):
+    max_enrolled = 0
+    for index in range(len(student_list)):
+        if max_enrolled < student_list[index].get_number_of_enrollments():
+            max_enrolled = student_list[index].get_number_of_enrollments()
+
+    tmp_student_list = []
+    tmp_data = deepcopy(_data)
+    for stu in range(len(student_list)):
+        if student_list[stu].get_number_of_enrollments() < max_enrolled:
+            tmp_student_list.append(student_list[stu])
+    if len(tmp_student_list) > 0:
+        enroll_students(tmp_data, tmp_student_list, course_list)
+
+
 def enroll_students(_data, student_list, course_list):
     amount_of_bidrs = {'a': [], 'b': [], 'c': [], 'd': []}
     student_element = {'a': [], 'b': [], 'c': [], 'd': []}
@@ -124,11 +139,9 @@ def enroll_students(_data, student_list, course_list):
 
                         else:  # If the student enrolled already to overlap course over course_list[j]
                             counter = 0
-                            for stu in range(len(student_list)):
-                                if len(try_to_enroll) > counter:
-                                    _data[try_to_enroll[counter]] = \
-                                        student_list[stu].get_next_preference(course_list[j].get_name())
-                                    counter += 1
+                            _data[try_to_enroll[counter]] = \
+                                student_list[need_to].get_next_preference(course_list[j].get_name())
+                            counter += 1
 
             elif key == course_list[j].get_name() and course_list[j].get_capacity() == 0:  # If the capacity is zero
                 counter = 0
@@ -142,43 +155,43 @@ def enroll_students(_data, student_list, course_list):
 
             elif key == course_list[j].get_name() and not course_list[j].can_be_enroll(len(try_to_enroll)):
                 # If the capacity is not let to enroll all student who put bid over that course
-                student_object_try.sort(key=lambda x: x.get_current_highest_bid(), reverse=True)
+                student_object_try = sorted(student_object_try, key=lambda x: x.get_current_highest_bid(), reverse=True)
+
                 counter = 0
                 for stu in range(len(student_object_try)):
                     if check_overlap(student_object_try[stu], course_list[j]) and course_list[j].get_capacity() > 0:
                         # If there is a place to enroll student stu
                         course_list[j].student_enrollment(student_object_try[stu].get_name(), student_object_try[stu])
+                        student_object_try[stu].got_enrolled(course_list[j].get_name())
 
                     elif not check_overlap(student_object_try[stu], course_list[j]) or course_list[j].get_capacity() == 0:
                         # If there is a student such that want to enroll to course but is overlap or have zero capacity
-                        if student_list[stu].get_need_to_enroll() != 0:
-                            _data[try_to_enroll[counter]] = \
-                                student_list[stu].get_next_preference(course_list[j].get_name())
-                            counter += 1
+                        _data[try_to_enroll[counter]] = student_list[stu].get_next_preference(course_list[j].get_name())
+                        counter += 1
 
 
 def algorithm(fixed, student_list, course_list, rounds=3):
     student_names = list(fixed.keys())
     ranks = list(fixed.values())
     for i in range(rounds):
-        for j in range(len(student_list)):
-            round_data = ready_to_new_round(student_names, ranks)
-            enroll_students(round_data, student_list, course_list)
+        round_data = ready_to_new_round(student_names, ranks)
+        enroll_students(round_data, student_list, course_list)
+        second_phase(round_data, student_list, course_list)
 
 
 def main():
     courses = ["a", "b", "c", "d"]
     ranking = [[{'name': 'Joseph Stein', 'course name': 'a', 'rank': 50},
-                {'name': 'Joseph Stein', 'course name': 'b', 'rank': 150},
+                {'name': 'Joseph Stein', 'course name': 'b', 'rank': 100},
                 {'name': 'Joseph Stein', 'course name': 'c', 'rank': 200},
-                {'name': 'Joseph Stein', 'course name': 'd', 'rank': 100}],
+                {'name': 'Joseph Stein', 'course name': 'd', 'rank': 150}],
                [{'name': 'Itay Simchayov', 'course name': 'a', 'rank': 110},
-                {'name': 'Itay Simchayov', 'course name': 'b', 'rank': 140},
-                {'name': 'Itay Simchayov', 'course name': 'c', 'rank': 140},
-                {'name': 'Itay Simchayov', 'course name': 'd', 'rank': 110}],
-               [{'name': 'Lihi Belfer', 'course name': 'a', 'rank': 250},
+                {'name': 'Itay Simchayov', 'course name': 'b', 'rank': 100},
+                {'name': 'Itay Simchayov', 'course name': 'c', 'rank': 150},
+                {'name': 'Itay Simchayov', 'course name': 'd', 'rank': 140}],
+               [{'name': 'Lihi Belfer', 'course name': 'a', 'rank': 60},
                 {'name': 'Lihi Belfer', 'course name': 'b', 'rank': 130},
-                {'name': 'Lihi Belfer', 'course name': 'c', 'rank': 70},
+                {'name': 'Lihi Belfer', 'course name': 'c', 'rank': 250},
                 {'name': 'Lihi Belfer', 'course name': 'd', 'rank': 50}]]
 
     row_number = len(ranking)
