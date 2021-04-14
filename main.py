@@ -105,12 +105,36 @@ def second_phase(_data, student_list, course_list):
             max_enrolled = student_list[index].get_number_of_enrollments()
 
     tmp_student_list = []
-    tmp_data = deepcopy(_data)
+    tmp_data = {}
+    _data_value = list(_data.values())
+    _data_keys = list(_data.keys())
     for stu in range(len(student_list)):
         if student_list[stu].get_number_of_enrollments() < max_enrolled:
             tmp_student_list.append(student_list[stu])
+            tmp_data[_data_keys[stu]] = _data_value[stu]
     if len(tmp_student_list) > 0:
         enroll_students(tmp_data, tmp_student_list, course_list)
+
+
+def there_is_a_tie(student_object):
+    start_end = [0 for i in range(len(student_object))]
+    counter = 0
+    same = False
+    for index in range(len(student_object)-1):
+        if student_object[index].get_current_highest_bid() == student_object[index+1].get_current_highest_bid() and not same:
+            start_end[counter] = index
+            counter += 1
+            same = True
+
+        elif student_object[index].get_current_highest_bid() != student_object[index+1].get_current_highest_bid() and same:
+            start_end[counter] = index
+            counter += 1
+            same = False
+
+    if len(start_end) % 2 == 0:
+        start_end[counter] = len(student_object) - 1
+
+    return start_end
 
 
 def enroll_students(_data, student_list, course_list):
@@ -122,7 +146,7 @@ def enroll_students(_data, student_list, course_list):
         amount_of_bidrs[course[0]].append(student_list[i].get_name())
         student_element[course[0]].append(student_list[i])
 
-    for key, value in amount_of_bidrs.items():
+    for key in amount_of_bidrs.keys():
         for j in range(len(course_list)):
             try_to_enroll = amount_of_bidrs[key]
             student_object_try = student_element[key]
@@ -132,42 +156,42 @@ def enroll_students(_data, student_list, course_list):
                         if check_overlap(student_object_try[need_to], course_list[j]):  # Enroll student if he dose
                             # not have overlap course to course_list[j]
                             course_list[j].student_enrollment(try_to_enroll[need_to], student_object_try[need_to])
-                            for stu in range(len(student_list)):
-                                if student_list[stu].get_name() == try_to_enroll[need_to] and \
-                                        student_list[stu].get_need_to_enroll() != 0:
-                                    student_list[stu].got_enrolled(course_list[j].get_name())
+                            for stu in range(len(student_object_try)):
+                                if student_object_try[stu].get_name() == try_to_enroll[need_to] and \
+                                        student_object_try[stu].get_need_to_enroll() != 0:
+                                    student_object_try[stu].got_enrolled(course_list[j].get_name())
 
                         else:  # If the student enrolled already to overlap course over course_list[j]
                             counter = 0
                             _data[try_to_enroll[counter]] = \
-                                student_list[need_to].get_next_preference(course_list[j].get_name())
+                                student_object_try[need_to].get_next_preference(course_list[j].get_name())
                             counter += 1
 
             elif key == course_list[j].get_name() and course_list[j].get_capacity() == 0:  # If the capacity is zero
                 counter = 0
-                for stu in range(len(student_list)):
+                for stu in range(len(student_object_try)):
                     if len(try_to_enroll) > counter:
-                        if student_list[stu].get_name() == try_to_enroll[counter]:
-                            if student_list[stu].get_need_to_enroll() != 0:
+                        if student_object_try[stu].get_name() == try_to_enroll[counter]:
+                            if student_object_try[stu].get_need_to_enroll() != 0:
                                 _data[try_to_enroll[counter]] = \
-                                    student_list[stu].get_next_preference(course_list[j].get_name())
+                                    student_object_try[stu].get_next_preference(course_list[j].get_name())
                                 counter += 1
 
             elif key == course_list[j].get_name() and not course_list[j].can_be_enroll(len(try_to_enroll)):
                 # If the capacity is not let to enroll all student who put bid over that course
                 student_object_try = sorted(student_object_try, key=lambda x: x.get_current_highest_bid(), reverse=True)
 
-                counter = 0
+                check = there_is_a_tie(student_object_try)
+                print(check)
                 for stu in range(len(student_object_try)):
                     if check_overlap(student_object_try[stu], course_list[j]) and course_list[j].get_capacity() > 0:
                         # If there is a place to enroll student stu
                         course_list[j].student_enrollment(student_object_try[stu].get_name(), student_object_try[stu])
                         student_object_try[stu].got_enrolled(course_list[j].get_name())
 
-                    elif not check_overlap(student_object_try[stu], course_list[j]) or course_list[j].get_capacity() == 0:
+                    else:
                         # If there is a student such that want to enroll to course but is overlap or have zero capacity
-                        _data[try_to_enroll[counter]] = student_list[stu].get_next_preference(course_list[j].get_name())
-                        counter += 1
+                        _data[student_object_try[stu].get_name()] = student_object_try[stu].get_next_preference(course_list[j].get_name())
 
 
 def algorithm(fixed, student_list, course_list, rounds=3):
