@@ -35,7 +35,7 @@ class Student:
 
     def __init__(self, name, cardinal_order, enrolled_or_not):
         self.name = name
-        self.need_to_enroll = 2
+        self.need_to_enroll = 3
         self.cardinal_order = cardinal_order
         self.enrolled_or_not = enrolled_or_not
         self.ordinal_order = {}
@@ -68,6 +68,11 @@ class Student:
         cardinal_keys = list(self.cardinal_order.keys())
         cardinal_value = list(self.cardinal_order.values())
         return {cardinal_keys[index]: cardinal_value[index]}
+
+    def get_current_highest_bid(self):
+        index = list(self.cardinal_order).index(max(self.cardinal_order))
+        cardinal_value = list(self.cardinal_order.values())
+        return cardinal_value[index]
 
     def got_enrolled(self, course_name):
         if self.need_to_enroll > 0 and self.enrolled_or_not[course_name] == 0:

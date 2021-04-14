@@ -112,16 +112,17 @@ def enroll_students(_data, student_list, course_list):
             try_to_enroll = amount_of_bidrs[key]
             student_object_try = student_element[key]
             if key == course_list[j].get_name() and course_list[j].can_be_enroll(len(try_to_enroll)):
-                if course_list[j].capacity >= len(try_to_enroll) > 0:  # when we can enroll everyone
+                if len(try_to_enroll) > 0:  # when we can enroll everyone
                     for need_to in range(len(try_to_enroll)):
-                        if check_overlap(student_object_try[need_to], course_list[j]):
+                        if check_overlap(student_object_try[need_to], course_list[j]):  # Enroll student if he dose
+                            # not have overlap course to course_list[j]
                             course_list[j].student_enrollment(try_to_enroll[need_to], student_object_try[need_to])
                             for stu in range(len(student_list)):
                                 if student_list[stu].get_name() == try_to_enroll[need_to] and \
                                         student_list[stu].get_need_to_enroll() != 0:
                                     student_list[stu].got_enrolled(course_list[j].get_name())
 
-                        else:
+                        else:  # If the student enrolled already to overlap course over course_list[j]
                             counter = 0
                             for stu in range(len(student_list)):
                                 if len(try_to_enroll) > counter:
@@ -129,7 +130,7 @@ def enroll_students(_data, student_list, course_list):
                                         student_list[stu].get_next_preference(course_list[j].get_name())
                                     counter += 1
 
-            elif key == course_list[j].get_name() and not course_list[j].can_be_enroll(len(try_to_enroll)):
+            elif key == course_list[j].get_name() and course_list[j].get_capacity() == 0:  # If the capacity is zero
                 counter = 0
                 for stu in range(len(student_list)):
                     if len(try_to_enroll) > counter:
@@ -138,6 +139,22 @@ def enroll_students(_data, student_list, course_list):
                                 _data[try_to_enroll[counter]] = \
                                     student_list[stu].get_next_preference(course_list[j].get_name())
                                 counter += 1
+
+            elif key == course_list[j].get_name() and not course_list[j].can_be_enroll(len(try_to_enroll)):
+                # If the capacity is not let to enroll all student who put bid over that course
+                student_object_try.sort(key=lambda x: x.get_current_highest_bid(), reverse=True)
+                counter = 0
+                for stu in range(len(student_object_try)):
+                    if check_overlap(student_object_try[stu], course_list[j]) and course_list[j].get_capacity() > 0:
+                        # If there is a place to enroll student stu
+                        course_list[j].student_enrollment(student_object_try[stu].get_name(), student_object_try[stu])
+
+                    elif not check_overlap(student_object_try[stu], course_list[j]) or course_list[j].get_capacity() == 0:
+                        # If there is a student such that want to enroll to course but is overlap or have zero capacity
+                        if student_list[stu].get_need_to_enroll() != 0:
+                            _data[try_to_enroll[counter]] = \
+                                student_list[stu].get_next_preference(course_list[j].get_name())
+                            counter += 1
 
 
 def algorithm(fixed, student_list, course_list, rounds=3):
@@ -151,12 +168,12 @@ def algorithm(fixed, student_list, course_list, rounds=3):
 
 def main():
     courses = ["a", "b", "c", "d"]
-    ranking = [[{'name': 'Joseph Stein', 'course name': 'a', 'rank': 150},
-                {'name': 'Joseph Stein', 'course name': 'b', 'rank': 50},
+    ranking = [[{'name': 'Joseph Stein', 'course name': 'a', 'rank': 50},
+                {'name': 'Joseph Stein', 'course name': 'b', 'rank': 150},
                 {'name': 'Joseph Stein', 'course name': 'c', 'rank': 200},
                 {'name': 'Joseph Stein', 'course name': 'd', 'rank': 100}],
-               [{'name': 'Itay Simchayov', 'course name': 'a', 'rank': 130},
-                {'name': 'Itay Simchayov', 'course name': 'b', 'rank': 120},
+               [{'name': 'Itay Simchayov', 'course name': 'a', 'rank': 110},
+                {'name': 'Itay Simchayov', 'course name': 'b', 'rank': 140},
                 {'name': 'Itay Simchayov', 'course name': 'c', 'rank': 140},
                 {'name': 'Itay Simchayov', 'course name': 'd', 'rank': 110}],
                [{'name': 'Lihi Belfer', 'course name': 'a', 'rank': 250},

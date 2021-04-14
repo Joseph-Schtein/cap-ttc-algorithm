@@ -25,6 +25,9 @@ class Course:
     def get_name(self):
         return self.name
 
+    def get_capacity(self):
+        return self.capacity
+
     def to_string(self):
         print("Course name: ", self.name, ", Capacity: ", self.capacity, "\n" 
               "Number of student that enroll to this course is: ", len(self.students), "\n"
