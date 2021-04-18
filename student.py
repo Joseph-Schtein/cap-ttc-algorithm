@@ -42,6 +42,7 @@ class Student:
         self.ordinal_order = {}
         self.cardinal_utility = 0
         self.ordinal_utility = 0
+        self.enrolled_first_phase = False
         if check_budget(self.cardinal_order):
             self.ordinal_order = create_ordinal_order(cardinal_order)
 
@@ -63,12 +64,21 @@ class Student:
     def get_enrolment_status(self):
         return self.enrolled_or_not
 
-    def get_next_preference(self, course_name):
-        self.changeable_cardinal_order[course_name] = 0
-        index = list(self.changeable_cardinal_order).index(max(self.changeable_cardinal_order))
-        cardinal_keys = list(self.changeable_cardinal_order.keys())
+    def get_next_preference(self):
         cardinal_value = list(self.changeable_cardinal_order.values())
-        return {cardinal_keys[index]: cardinal_value[index]}
+        cardinal_keys = list(self.changeable_cardinal_order.keys())
+        max_value_index = cardinal_value.index(max(cardinal_value))
+        course_name = cardinal_keys[max_value_index]
+        self.changeable_cardinal_order[course_name] = 0
+        cardinal_value[max_value_index] = 0
+        max_value_index = cardinal_value.index(max(cardinal_value))
+        return {cardinal_keys[max_value_index]: cardinal_value[max_value_index]}
+
+    def get_next_preference_without_change(self):
+        cardinal_value = list(self.changeable_cardinal_order.values())
+        cardinal_keys = list(self.changeable_cardinal_order.keys())
+        max_value_index = cardinal_value.index(max(cardinal_value))
+        return {cardinal_keys[max_value_index]: cardinal_value[max_value_index]}
 
     def get_number_of_enrollments(self):
         return self.enrolled_num

@@ -54,15 +54,15 @@ def create_courses(fixed):
     course_list = []
     for i in range(len(courses_name_list)):
         if i == 0:
-            cou = Course(courses_name_list[i], 3, 2, ["c"])
+            cou = Course(courses_name_list[i], 3, 3, ["c"])
             course_list.append(cou)
 
         elif i == 2:
-            cou = Course(courses_name_list[i], 3, 2, ["a"])
+            cou = Course(courses_name_list[i], 3, 3, ["a"])
             course_list.append(cou)
 
         else:
-            cou = Course(courses_name_list[i], 3, 2, [])
+            cou = Course(courses_name_list[i], 3, 3, [])
             course_list.append(cou)
 
     return course_list
@@ -77,7 +77,7 @@ def check_overlap(student_object, course_object):
             course_name = overlap_courses[overlap]
             check = enroll_status[course_name]
             if check == 1:
-                student_object.get_next_preference(course_object.get_name())
+                student_object.get_next_preference()
                 if output:
                     output = False
 
@@ -98,22 +98,32 @@ def ready_to_new_round(student_names, ranks):
     return _data
 
 
-def second_phase(_data, student_list, course_list):
+def second_phase(_data, student_list, course_list, round_number):
     max_enrolled = 0
+    enroll_list = [0 for i in range(len(student_list))]
     for index in range(len(student_list)):
         if max_enrolled < student_list[index].get_number_of_enrollments():
             max_enrolled = student_list[index].get_number_of_enrollments()
+        enroll_list[index] = student_list[index].get_number_of_enrollments()
 
-    tmp_student_list = []
-    tmp_data = {}
-    _data_value = list(_data.values())
-    _data_keys = list(_data.keys())
-    for stu in range(len(student_list)):
-        if student_list[stu].get_number_of_enrollments() < max_enrolled:
-            tmp_student_list.append(student_list[stu])
-            tmp_data[_data_keys[stu]] = _data_value[stu]
-    if len(tmp_student_list) > 0:
-        enroll_students(tmp_data, tmp_student_list, course_list)
+    if enroll_list.count(max_enrolled) != len(enroll_list):
+        tmp_student_list = []
+        tmp_data = {}
+        _data_value = list(_data.values())
+        _data_keys = list(_data.keys())
+        for stu in range(len(student_list)):
+            if student_list[stu].get_number_of_enrollments() < max_enrolled:
+                tmp_student_list.append(student_list[stu])
+                tmp_data[_data_keys[stu]] = _data_value[stu]
+        if len(tmp_student_list) > 0:
+            enroll_students(tmp_data, tmp_student_list, course_list)
+
+    elif enroll_list.count(max_enrolled) == len(enroll_list) and round_number  == max_enrolled:
+        for stu in range(len(student_list)):
+            _data[student_list[stu].get_name()] = student_list[stu].get_next_preference()
+        enroll_students(_data, student_list, course_list)
+
+
 
 
 def there_is_a_tie(student_object):
@@ -169,7 +179,7 @@ def enroll_students(_data, student_list, course_list):
                         else:  # If the student enrolled already to overlap course over course_list[j]
                             counter = 0
                             _data[try_to_enroll[counter]] = \
-                                student_object_try[need_to].get_next_preference(course_list[j].get_name())
+                                student_object_try[need_to].get_next_preference_without_change()
                             counter += 1
 
             elif key == course_list[j].get_name() and course_list[j].get_capacity() == 0:  # If the capacity is zero
@@ -179,7 +189,7 @@ def enroll_students(_data, student_list, course_list):
                         if student_object_try[stu].get_name() == try_to_enroll[counter]:
                             if student_object_try[stu].get_need_to_enroll() != 0:
                                 _data[try_to_enroll[counter]] = \
-                                    student_object_try[stu].get_next_preference(course_list[j].get_name())
+                                    student_object_try[stu].get_next_preference()
                                 counter += 1
 
             elif key == course_list[j].get_name() and not course_list[j].can_be_enroll(len(try_to_enroll)):
@@ -189,30 +199,31 @@ def enroll_students(_data, student_list, course_list):
                 check = there_is_a_tie(student_object_try)
                 if check.count(0) == len(check):    # In case there isn't a tie between student bids
                     for stu in range(len(student_object_try)):
-                        if check_overlap(student_object_try[stu], course_list[j]) and course_list[j].get_capacity() > 0:
-                            # If there is a place to enroll student stu
-                            course_list[j].student_enrollment(student_object_try[stu].get_name(), student_object_try[stu])
-                            student_object_try[stu].got_enrolled(course_list[j].get_name())
+                        if course_list[j].get_capacity() > 0:
+                            if check_overlap(student_object_try[stu], course_list[j]):
+                                # If there is a place to enroll student stu
+                                course_list[j].student_enrollment(student_object_try[stu].get_name(), student_object_try[stu])
+                                student_object_try[stu].got_enrolled(course_list[j].get_name())
 
-                        else:
-                            # If there is a student such that want to enroll to course but is overlap or have zero
-                            # capacity
-                            _data[student_object_try[stu].get_name()] = student_object_try[stu].get_next_preference(course_list[j].get_name())
+                            else:
+                                # If there is a student such that want to enroll to course but is overlap or have zero
+                                # capacity
+                                _data[student_object_try[stu].get_name()] = student_object_try[stu].get_next_preference_without_change()
 
                 else:   # In case there is a tie between student bids we break the tie by there ordinal order
                     sort_tie_breaker(student_object_try, check, course_list[j].get_name())
                     for stu in range(len(student_object_try)):
-                        if check_overlap(student_object_try[stu], course_list[j]) and course_list[j].get_capacity() > 0:
-                            # If there is a place to enroll student stu
-                            course_list[j].student_enrollment(student_object_try[stu].get_name(),
-                                                              student_object_try[stu])
-                            student_object_try[stu].got_enrolled(course_list[j].get_name())
+                        if course_list[j].get_capacity() > 0:
+                            if check_overlap(student_object_try[stu], course_list[j]):
+                                # If there is a place to enroll student stu
+                                course_list[j].student_enrollment(student_object_try[stu].get_name(),
+                                                                  student_object_try[stu])
+                                student_object_try[stu].got_enrolled(course_list[j].get_name())
 
-                        else:
-                            # If there is a student such that want to enroll to course but is overlap or have zero
-                            # capacity
-                            _data[student_object_try[stu].get_name()] = student_object_try[stu].get_next_preference(
-                                course_list[j].get_name())
+                            else:
+                                # If there is a student such that want to enroll to course but is overlap or have zero
+                                # capacity
+                                _data[student_object_try[stu].get_name()] = student_object_try[stu].get_next_preference_without_change()
 
 
 def algorithm(fixed, student_list, course_list, rounds=3):
@@ -221,23 +232,23 @@ def algorithm(fixed, student_list, course_list, rounds=3):
     for i in range(rounds):
         round_data = ready_to_new_round(student_names, ranks)
         enroll_students(round_data, student_list, course_list)
-        second_phase(round_data, student_list, course_list)
+        second_phase(round_data, student_list, course_list, i)
 
 
 def main():
     courses = ["a", "b", "c", "d"]
-    ranking = [[{'name': 'Joseph Stein', 'course name': 'a', 'rank': 90},
-                {'name': 'Joseph Stein', 'course name': 'b', 'rank': 110},
-                {'name': 'Joseph Stein', 'course name': 'c', 'rank': 140},
-                {'name': 'Joseph Stein', 'course name': 'd', 'rank': 160}],
+    ranking = [[{'name': 'Joseph Stein', 'course name': 'a', 'rank': 110},
+                {'name': 'Joseph Stein', 'course name': 'b', 'rank': 140},
+                {'name': 'Joseph Stein', 'course name': 'c', 'rank': 130},
+                {'name': 'Joseph Stein', 'course name': 'd', 'rank': 90}],
                [{'name': 'Itay Simchayov', 'course name': 'a', 'rank': 100},
-                {'name': 'Itay Simchayov', 'course name': 'b', 'rank': 110},
-                {'name': 'Itay Simchayov', 'course name': 'c', 'rank': 150},
+                {'name': 'Itay Simchayov', 'course name': 'b', 'rank': 150},
+                {'name': 'Itay Simchayov', 'course name': 'c', 'rank': 110},
                 {'name': 'Itay Simchayov', 'course name': 'd', 'rank': 140}],
                [{'name': 'Lihi Belfer', 'course name': 'a', 'rank': 60},
-                {'name': 'Lihi Belfer', 'course name': 'b', 'rank': 130},
-                {'name': 'Lihi Belfer', 'course name': 'c', 'rank': 250},
-                {'name': 'Lihi Belfer', 'course name': 'd', 'rank': 50}]]
+                {'name': 'Lihi Belfer', 'course name': 'b', 'rank': 200},
+                {'name': 'Lihi Belfer', 'course name': 'c', 'rank': 100},
+                {'name': 'Lihi Belfer', 'course name': 'd', 'rank': 130}]]
 
     row_number = len(ranking)
     column_number = len(ranking[0])
