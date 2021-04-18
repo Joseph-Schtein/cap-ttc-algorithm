@@ -8,8 +8,7 @@ def check_budget(order):
         sum_bidding += order_values[i]
 
     if sum_bidding > 500:
-        print("need to throw an exception here")
-        return False
+        raise Exception("Sorry, the sum of bidding is can't be summarized above 500")
 
     else:
         return True
@@ -37,13 +36,14 @@ class Student:
         self.name = name
         self.need_to_enroll = 3
         self.enrolled_num = 0
-        self.cardinal_order = cardinal_order
+        self.cardinal_order = copy.deepcopy(cardinal_order)
+        self.changeable_cardinal_order = cardinal_order
         self.enrolled_or_not = enrolled_or_not
         self.ordinal_order = {}
         self.cardinal_utility = 0
+        self.ordinal_utility = 0
         if check_budget(self.cardinal_order):
             self.ordinal_order = create_ordinal_order(cardinal_order)
-            self.cardinal_utility = 0
 
     def get_name(self):
         return self.name
@@ -64,27 +64,31 @@ class Student:
         return self.enrolled_or_not
 
     def get_next_preference(self, course_name):
-        self.cardinal_order[course_name] = 0
-        index = list(self.cardinal_order).index(max(self.cardinal_order))
-        cardinal_keys = list(self.cardinal_order.keys())
-        cardinal_value = list(self.cardinal_order.values())
+        self.changeable_cardinal_order[course_name] = 0
+        index = list(self.changeable_cardinal_order).index(max(self.changeable_cardinal_order))
+        cardinal_keys = list(self.changeable_cardinal_order.keys())
+        cardinal_value = list(self.changeable_cardinal_order.values())
         return {cardinal_keys[index]: cardinal_value[index]}
 
     def get_number_of_enrollments(self):
         return self.enrolled_num
 
     def get_current_highest_bid(self):
-        index = list(self.cardinal_order).index(max(self.cardinal_order))
-        cardinal_value = list(self.cardinal_order.values())
+        index = list(self.changeable_cardinal_order).index(max(self.changeable_cardinal_order))
+        cardinal_value = list(self.changeable_cardinal_order.values())
         return cardinal_value[index - 1]
+
+    def current_highest_ordinal(self, course_name):
+        return self.ordinal_order[course_name]
 
     def got_enrolled(self, course_name):
         if self.need_to_enroll > 0 and self.enrolled_or_not[course_name] == 0:
             self.need_to_enroll -= 1
-            self.cardinal_utility += self.cardinal_order[course_name]
-            self.cardinal_order[course_name] = 0
+            self.cardinal_utility += self.changeable_cardinal_order[course_name]
+            self.changeable_cardinal_order[course_name] = 0
             self.enrolled_or_not[course_name] = 1
             self.enrolled_num += 1
+            self.ordinal_utility += len(self.ordinal_order) - self.ordinal_order[course_name]+1
 
         elif self.enrolled_or_not[course_name] == 1:
             print("Student: ", self.name, ", is already enrolled to the course: ", course_name)
@@ -93,9 +97,6 @@ class Student:
             print("Student: ", self.name, " got to the limit of courses enrollment")
 
     def to_string(self):
-        print("Student name:", self.name, ", The cardinal order is: ", self.cardinal_order, "\n"
-                                                                                            "The ordinal is: ",
-              self.ordinal_order, "\n",
-              "The courses that: ", self.name, " enrolled are: ", self.enrolled_or_not, "\n"
-                                                                                        "The cardinal utility is: ",
-              self.cardinal_utility)
+        print("Student name:", self.name, ", The cardinal order is: ", self.cardinal_order, "\n"  "The ordinal is: ",
+              self.ordinal_order, "\n", "The courses that: ", self.name, " enrolled are: ", self.enrolled_or_not, "\n"
+              "The cardinal utility is: ", self.cardinal_utility, ", The ordinal utility is: ", self.ordinal_utility)

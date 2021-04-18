@@ -118,23 +118,28 @@ def second_phase(_data, student_list, course_list):
 
 def there_is_a_tie(student_object):
     start_end = [0 for i in range(len(student_object))]
-    counter = 0
+    counter = 1
     same = False
     for index in range(len(student_object)-1):
-        if student_object[index].get_current_highest_bid() == student_object[index+1].get_current_highest_bid() and not same:
-            start_end[counter] = index
-            counter += 1
-            same = True
+        if student_object[index].get_current_highest_bid() == student_object[index+1].get_current_highest_bid():
+            start_end[index] = counter
+            start_end[index+1] = counter
 
-        elif student_object[index].get_current_highest_bid() != student_object[index+1].get_current_highest_bid() and same:
-            start_end[counter] = index
+        elif student_object[index].get_current_highest_bid() != student_object[index+1].get_current_highest_bid()\
+                and student_object[index] != 0:
             counter += 1
-            same = False
-
-    if len(start_end) % 2 == 0:
-        start_end[counter] = len(student_object) - 1
 
     return start_end
+
+
+def sort_tie_breaker(student_object_try, check, course_name):
+    max_value = max(check)
+    for i in range(1, max_value+1):
+        min_index = check.index(i)
+        max_index = len(check) - check[::-1].index(i) - 1    # sort other way around and find the index of the element i
+        tie_student = student_object_try[min_index:max_index+1]
+        fixed_tie_student = sorted(tie_student, key=lambda x: x.current_highest_ordinal(course_name))
+        student_object_try[min_index:max_index] = fixed_tie_student
 
 
 def enroll_students(_data, student_list, course_list):
@@ -182,16 +187,32 @@ def enroll_students(_data, student_list, course_list):
                 student_object_try = sorted(student_object_try, key=lambda x: x.get_current_highest_bid(), reverse=True)
 
                 check = there_is_a_tie(student_object_try)
-                print(check)
-                for stu in range(len(student_object_try)):
-                    if check_overlap(student_object_try[stu], course_list[j]) and course_list[j].get_capacity() > 0:
-                        # If there is a place to enroll student stu
-                        course_list[j].student_enrollment(student_object_try[stu].get_name(), student_object_try[stu])
-                        student_object_try[stu].got_enrolled(course_list[j].get_name())
+                if check.count(0) == len(check):    # In case there isn't a tie between student bids
+                    for stu in range(len(student_object_try)):
+                        if check_overlap(student_object_try[stu], course_list[j]) and course_list[j].get_capacity() > 0:
+                            # If there is a place to enroll student stu
+                            course_list[j].student_enrollment(student_object_try[stu].get_name(), student_object_try[stu])
+                            student_object_try[stu].got_enrolled(course_list[j].get_name())
 
-                    else:
-                        # If there is a student such that want to enroll to course but is overlap or have zero capacity
-                        _data[student_object_try[stu].get_name()] = student_object_try[stu].get_next_preference(course_list[j].get_name())
+                        else:
+                            # If there is a student such that want to enroll to course but is overlap or have zero
+                            # capacity
+                            _data[student_object_try[stu].get_name()] = student_object_try[stu].get_next_preference(course_list[j].get_name())
+
+                else:   # In case there is a tie between student bids we break the tie by there ordinal order
+                    sort_tie_breaker(student_object_try, check, course_list[j].get_name())
+                    for stu in range(len(student_object_try)):
+                        if check_overlap(student_object_try[stu], course_list[j]) and course_list[j].get_capacity() > 0:
+                            # If there is a place to enroll student stu
+                            course_list[j].student_enrollment(student_object_try[stu].get_name(),
+                                                              student_object_try[stu])
+                            student_object_try[stu].got_enrolled(course_list[j].get_name())
+
+                        else:
+                            # If there is a student such that want to enroll to course but is overlap or have zero
+                            # capacity
+                            _data[student_object_try[stu].get_name()] = student_object_try[stu].get_next_preference(
+                                course_list[j].get_name())
 
 
 def algorithm(fixed, student_list, course_list, rounds=3):
@@ -205,12 +226,12 @@ def algorithm(fixed, student_list, course_list, rounds=3):
 
 def main():
     courses = ["a", "b", "c", "d"]
-    ranking = [[{'name': 'Joseph Stein', 'course name': 'a', 'rank': 50},
-                {'name': 'Joseph Stein', 'course name': 'b', 'rank': 100},
-                {'name': 'Joseph Stein', 'course name': 'c', 'rank': 200},
-                {'name': 'Joseph Stein', 'course name': 'd', 'rank': 150}],
-               [{'name': 'Itay Simchayov', 'course name': 'a', 'rank': 110},
-                {'name': 'Itay Simchayov', 'course name': 'b', 'rank': 100},
+    ranking = [[{'name': 'Joseph Stein', 'course name': 'a', 'rank': 90},
+                {'name': 'Joseph Stein', 'course name': 'b', 'rank': 110},
+                {'name': 'Joseph Stein', 'course name': 'c', 'rank': 140},
+                {'name': 'Joseph Stein', 'course name': 'd', 'rank': 160}],
+               [{'name': 'Itay Simchayov', 'course name': 'a', 'rank': 100},
+                {'name': 'Itay Simchayov', 'course name': 'b', 'rank': 110},
                 {'name': 'Itay Simchayov', 'course name': 'c', 'rank': 150},
                 {'name': 'Itay Simchayov', 'course name': 'd', 'rank': 140}],
                [{'name': 'Lihi Belfer', 'course name': 'a', 'rank': 60},
