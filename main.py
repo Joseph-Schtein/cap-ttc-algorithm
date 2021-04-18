@@ -54,15 +54,15 @@ def create_courses(fixed):
     course_list = []
     for i in range(len(courses_name_list)):
         if i == 0:
-            cou = Course(courses_name_list[i], 3, 3, ["c"])
+            cou = Course(courses_name_list[i], 3, 2, ["c"])
             course_list.append(cou)
 
         elif i == 2:
-            cou = Course(courses_name_list[i], 3, 3, ["a"])
+            cou = Course(courses_name_list[i], 3, 2, ["a"])
             course_list.append(cou)
 
         else:
-            cou = Course(courses_name_list[i], 3, 3, [])
+            cou = Course(courses_name_list[i], 3, 2, [])
             course_list.append(cou)
 
     return course_list
