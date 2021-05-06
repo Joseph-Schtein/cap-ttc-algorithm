@@ -6,18 +6,24 @@ class Course:
         self.capacity = capacity_bounds
         self.students = []
         self.overlap = overlap_courses
+        self.lowest_bid = 0
 
     def student_enrollment(self, student_name, student_element):
         if self.capacity > 0 and student_name not in self.students and student_element.get_need_to_enroll():
             self.capacity -= 1
             self.maximal_capacity -= 1
             self.students.append(student_name)
+            if student_element.get_current_highest_bid() < self.lowest_bid or self.lowest_bid == 0:
+                self.lowest_bid = student_element.get_current_highest_bid()
 
         else:
             print("We can't enroll you to the course")
 
     def can_be_enroll(self, number_of_students):
         return self.capacity >= number_of_students
+
+    def get_lowest_bid(self):
+        return self.lowest_bid
 
     def get_overlap_list(self):
         return self.overlap

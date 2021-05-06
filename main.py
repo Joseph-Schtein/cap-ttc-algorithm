@@ -165,65 +165,91 @@ def enroll_students(_data, student_list, course_list):
         for j in range(len(course_list)):
             try_to_enroll = amount_of_bidrs[key]
             student_object_try = student_element[key]
-            if key == course_list[j].get_name() and course_list[j].can_be_enroll(len(try_to_enroll)):
-                if len(try_to_enroll) > 0:  # when we can enroll everyone
-                    for need_to in range(len(try_to_enroll)):
-                        if check_overlap(student_object_try[need_to], course_list[j]):  # Enroll student if he dose
-                            # not have overlap course to course_list[j]
-                            course_list[j].student_enrollment(try_to_enroll[need_to], student_object_try[need_to])
-                            for stu in range(len(student_object_try)):
-                                if student_object_try[stu].get_name() == try_to_enroll[need_to] and \
-                                        student_object_try[stu].get_need_to_enroll() != 0:
-                                    student_object_try[stu].got_enrolled(course_list[j].get_name())
+            if key == course_list[j].get_name():
+                if course_list[j].can_be_enroll(len(try_to_enroll)):
+                    if len(try_to_enroll) > 0:  # when we can enroll everyone
+                        for need_to in range(len(try_to_enroll)):
+                            if check_overlap(student_object_try[need_to], course_list[j]):  # Enroll student if he dose
+                                # not have overlap course to course_list[j]
+                                course_list[j].student_enrollment(try_to_enroll[need_to], student_object_try[need_to])
+                                for stu in range(len(student_object_try)):
+                                    if student_object_try[stu].get_name() == try_to_enroll[need_to] and \
+                                            student_object_try[stu].get_need_to_enroll() != 0:
+                                        student_object_try[stu].got_enrolled(course_list[j].get_name())
 
-                        else:  # If the student enrolled already to overlap course over course_list[j]
-                            counter = 0
-                            _data[try_to_enroll[counter]] = \
-                                student_object_try[need_to].get_next_preference_without_change()
-                            counter += 1
+                            else:  # If the student enrolled already to overlap course over course_list[j]
+                                counter = 0
+                                gap = course_list[j].get_lowest_bid() - \
+                                      student_object_try[need_to].get_current_highest_bid()
 
-            elif key == course_list[j].get_name() and course_list[j].get_capacity() == 0:  # If the capacity is zero
-                counter = 0
-                for stu in range(len(student_object_try)):
-                    if len(try_to_enroll) > counter:
-                        if student_object_try[stu].get_name() == try_to_enroll[counter]:
-                            if student_object_try[stu].get_need_to_enroll() != 0:
+                                student_object_try[need_to].add_gap(gap)
+
                                 _data[try_to_enroll[counter]] = \
-                                    student_object_try[stu].get_next_preference()
+                                    student_object_try[need_to].get_next_preference_without_change()
                                 counter += 1
 
-            elif key == course_list[j].get_name() and not course_list[j].can_be_enroll(len(try_to_enroll)):
-                # If the capacity is not let to enroll all student who put bid over that course
-                student_object_try = sorted(student_object_try, key=lambda x: x.get_current_highest_bid(), reverse=True)
-
-                check = there_is_a_tie(student_object_try)
-                if check.count(0) == len(check):    # In case there isn't a tie between student bids
+                elif course_list[j].get_capacity() == 0:  # If the capacity is zero
+                    counter = 0
                     for stu in range(len(student_object_try)):
-                        if course_list[j].get_capacity() > 0:
-                            if check_overlap(student_object_try[stu], course_list[j]):
-                                # If there is a place to enroll student stu
+                        if len(try_to_enroll) > counter:
+                            if student_object_try[stu].get_name() == try_to_enroll[counter]:
+                                if student_object_try[stu].get_need_to_enroll() != 0:
+
+                                    gap = course_list[j].get_lowest_bid() - \
+                                          student_object_try[stu].get_current_highest_bid()
+
+                                    student_object_try[stu].add_gap(gap)
+
+                                    _data[try_to_enroll[counter]] = \
+                                        student_object_try[stu].get_next_preference_without_change()
+                                    counter += 1
+
+                elif not course_list[j].can_be_enroll(len(try_to_enroll)):
+                    # If the capacity is not let to enroll all student who put bid over that course
+                    student_object_try = sorted(student_object_try, key=lambda x: x.get_current_highest_bid(), reverse=True)
+
+                    check = there_is_a_tie(student_object_try)
+                    if check.count(0) == len(check):    # In case there isn't a tie between student bids
+                        for stu in range(len(student_object_try)):
+                            if course_list[j].get_capacity() > 0 and check_overlap(student_object_try[stu], course_list[j]):
                                 course_list[j].student_enrollment(student_object_try[stu].get_name(), student_object_try[stu])
                                 student_object_try[stu].got_enrolled(course_list[j].get_name())
 
+
                             else:
                                 # If there is a student such that want to enroll to course but is overlap or have zero
                                 # capacity
-                                _data[student_object_try[stu].get_name()] = student_object_try[stu].get_next_preference_without_change()
 
-                else:   # In case there is a tie between student bids we break the tie by there ordinal order
-                    sort_tie_breaker(student_object_try, check, course_list[j].get_name())
-                    for stu in range(len(student_object_try)):
-                        if course_list[j].get_capacity() > 0:
-                            if check_overlap(student_object_try[stu], course_list[j]):
+                                gap = course_list[j].get_lowest_bid() - \
+                                      student_object_try[stu].get_current_highest_bid()
+
+                                student_object_try[stu].add_gap(gap)
+
+                                _data[student_object_try[stu].get_name()] = \
+                                    student_object_try[stu].get_next_preference_without_change()
+
+                    else:   # In case there is a tie between student bids we break the tie by there ordinal order
+                        sort_tie_breaker(student_object_try, check, course_list[j].get_name())
+                        for stu in range(len(student_object_try)):
+                            if course_list[j].get_capacity() > 0 and check_overlap(student_object_try[stu], course_list[j]):
+
                                 # If there is a place to enroll student stu
                                 course_list[j].student_enrollment(student_object_try[stu].get_name(),
-                                                                  student_object_try[stu])
+                                                              student_object_try[stu])
                                 student_object_try[stu].got_enrolled(course_list[j].get_name())
 
                             else:
                                 # If there is a student such that want to enroll to course but is overlap or have zero
                                 # capacity
-                                _data[student_object_try[stu].get_name()] = student_object_try[stu].get_next_preference_without_change()
+
+                                gap = course_list[j].get_lowest_bid() - \
+                                      student_object_try[stu].get_current_highest_bid()
+
+                                student_object_try[stu].add_gap(gap)
+
+                                _data[student_object_try[stu].get_name()] = \
+                                    student_object_try[stu].get_next_preference_without_change()
+
 
 
 def algorithm(fixed, student_list, course_list, rounds=3):
@@ -237,18 +263,18 @@ def algorithm(fixed, student_list, course_list, rounds=3):
 
 def main():
     courses = ["a", "b", "c", "d"]
-    ranking = [[{'name': 'Joseph Stein', 'course name': 'a', 'rank': 110},
-                {'name': 'Joseph Stein', 'course name': 'b', 'rank': 140},
-                {'name': 'Joseph Stein', 'course name': 'c', 'rank': 130},
-                {'name': 'Joseph Stein', 'course name': 'd', 'rank': 90}],
-               [{'name': 'Itay Simchayov', 'course name': 'a', 'rank': 100},
-                {'name': 'Itay Simchayov', 'course name': 'b', 'rank': 150},
-                {'name': 'Itay Simchayov', 'course name': 'c', 'rank': 110},
-                {'name': 'Itay Simchayov', 'course name': 'd', 'rank': 140}],
-               [{'name': 'Lihi Belfer', 'course name': 'a', 'rank': 60},
-                {'name': 'Lihi Belfer', 'course name': 'b', 'rank': 200},
-                {'name': 'Lihi Belfer', 'course name': 'c', 'rank': 100},
-                {'name': 'Lihi Belfer', 'course name': 'd', 'rank': 130}]]
+    ranking = [[{'name': 'Joseph Stein', 'course name': 'a', 'rank': 140},
+                {'name': 'Joseph Stein', 'course name': 'b', 'rank': 130},
+                {'name': 'Joseph Stein', 'course name': 'c', 'rank': 140},
+                {'name': 'Joseph Stein', 'course name': 'd', 'rank': 80}],
+               [{'name': 'Itay Simchayov', 'course name': 'a', 'rank': 150},
+                {'name': 'Itay Simchayov', 'course name': 'b', 'rank': 140},
+                {'name': 'Itay Simchayov', 'course name': 'c', 'rank': 90},
+                {'name': 'Itay Simchayov', 'course name': 'd', 'rank': 102}],
+               [{'name': 'Lihi Belfer', 'course name': 'a', 'rank': 200},
+                {'name': 'Lihi Belfer', 'course name': 'b', 'rank': 131},
+                {'name': 'Lihi Belfer', 'course name': 'c', 'rank': 68},
+                {'name': 'Lihi Belfer', 'course name': 'd', 'rank': 101}]]
 
     row_number = len(ranking)
     column_number = len(ranking[0])

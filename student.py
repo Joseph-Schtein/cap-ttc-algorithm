@@ -83,10 +83,23 @@ class Student:
     def get_number_of_enrollments(self):
         return self.enrolled_num
 
-    def get_current_highest_bid(self):
-        index = list(self.changeable_cardinal_order).index(max(self.changeable_cardinal_order))
+    def add_gap(self, gap):
         cardinal_value = list(self.changeable_cardinal_order.values())
-        return cardinal_value[index - 1]
+        cardinal_keys = list(self.changeable_cardinal_order.keys())
+        max_value_index = cardinal_value.index(max(cardinal_value))
+        course_name = cardinal_keys[max_value_index]
+        self.changeable_cardinal_order[course_name] = 0
+        cardinal_value[max_value_index] = 0
+        max_value_index = cardinal_value.index(max(cardinal_value))
+        course_name = cardinal_keys[max_value_index]
+        self.changeable_cardinal_order[course_name] = cardinal_value[max_value_index] + gap
+        print (" ")
+
+
+    def get_current_highest_bid(self):
+        cardinal_value = list(self.changeable_cardinal_order.values())
+        index = cardinal_value.index(max(cardinal_value))
+        return cardinal_value[index]
 
     def current_highest_ordinal(self, course_name):
         return self.ordinal_order[course_name]
