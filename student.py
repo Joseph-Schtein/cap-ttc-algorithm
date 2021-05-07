@@ -74,6 +74,15 @@ class Student:
         max_value_index = cardinal_value.index(max(cardinal_value))
         return {cardinal_keys[max_value_index]: cardinal_value[max_value_index]}
 
+    def have_another_preference(self):
+        cardinal_value = list(self.changeable_cardinal_order.values())
+        if cardinal_value.count(0) == len(cardinal_value):
+            return True
+
+        else:
+            return False
+
+
     def get_next_preference_without_change(self):
         cardinal_value = list(self.changeable_cardinal_order.values())
         cardinal_keys = list(self.changeable_cardinal_order.keys())
@@ -90,11 +99,10 @@ class Student:
         course_name = cardinal_keys[max_value_index]
         self.changeable_cardinal_order[course_name] = 0
         cardinal_value[max_value_index] = 0
-        max_value_index = cardinal_value.index(max(cardinal_value))
-        course_name = cardinal_keys[max_value_index]
-        self.changeable_cardinal_order[course_name] = cardinal_value[max_value_index] + gap
-        print (" ")
-
+        if cardinal_value.count(0) != len(cardinal_value):
+            max_value_index = cardinal_value.index(max(cardinal_value))
+            course_name = cardinal_keys[max_value_index]
+            self.changeable_cardinal_order[course_name] = cardinal_value[max_value_index] + gap
 
     def get_current_highest_bid(self):
         cardinal_value = list(self.changeable_cardinal_order.values())

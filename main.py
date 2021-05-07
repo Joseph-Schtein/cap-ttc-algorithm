@@ -98,8 +98,9 @@ def ready_to_new_round(student_names, ranks):
     return _data
 
 
-def second_phase(_data, student_list, course_list, round_number):
+def second_phase(_data, student_list, course_list, round_number, rounds):
     max_enrolled = 0
+    need_to_enroll = [False for i in range(len(student_list))]
     enroll_list = [0 for i in range(len(student_list))]
     for index in range(len(student_list)):
         if max_enrolled < student_list[index].get_number_of_enrollments():
@@ -107,21 +108,29 @@ def second_phase(_data, student_list, course_list, round_number):
         enroll_list[index] = student_list[index].get_number_of_enrollments()
 
     if enroll_list.count(max_enrolled) != len(enroll_list):
-        tmp_student_list = []
-        tmp_data = {}
-        _data_value = list(_data.values())
-        _data_keys = list(_data.keys())
-        for stu in range(len(student_list)):
-            if student_list[stu].get_number_of_enrollments() < max_enrolled:
-                tmp_student_list.append(student_list[stu])
-                tmp_data[_data_keys[stu]] = _data_value[stu]
-        if len(tmp_student_list) > 0:
-            enroll_students(tmp_data, tmp_student_list, course_list)
+        while enroll_list.count(max_enrolled) != len(enroll_list) and need_to_enroll.count(True) != len(need_to_enroll):
+            for index in range(len(need_to_enroll)):
+                need_to_enroll[index] = student_list[index].have_another_preference() or\
+                                        student_list[index].get_number_of_enrollments() == rounds
 
-    elif enroll_list.count(max_enrolled) == len(enroll_list) and round_number  == max_enrolled:
-        for stu in range(len(student_list)):
-            _data[student_list[stu].get_name()] = student_list[stu].get_next_preference()
-        enroll_students(_data, student_list, course_list)
+            tmp_student_list = []
+            tmp_data = {}
+            _data_value = list(_data.values())
+            _data_keys = list(_data.keys())
+            for stu in range(len(student_list)):
+                if student_list[stu].get_number_of_enrollments() < max_enrolled:
+                    tmp_student_list.append(student_list[stu])
+                    tmp_data[_data_keys[stu]] = _data_value[stu]
+            if len(tmp_student_list) > 0:
+                enroll_students(tmp_data, tmp_student_list, course_list)
+            for index in range(len(student_list)):
+                enroll_list[index] = student_list[index].get_number_of_enrollments()
+
+    elif enroll_list.count(max_enrolled) == len(enroll_list) and round_number < max_enrolled:
+        while enroll_list.count(max_enrolled) == len(enroll_list) and round_number < max_enrolled:
+            for stu in range(len(student_list)):
+                _data[student_list[stu].get_name()] = student_list[stu].get_next_preference()
+            enroll_students(_data, student_list, course_list)
 
 
 
@@ -188,6 +197,7 @@ def enroll_students(_data, student_list, course_list):
                                     student_object_try[need_to].get_next_preference_without_change()
                                 counter += 1
 
+
                 elif course_list[j].get_capacity() == 0:  # If the capacity is zero
                     counter = 0
                     for stu in range(len(student_object_try)):
@@ -203,6 +213,7 @@ def enroll_students(_data, student_list, course_list):
                                     _data[try_to_enroll[counter]] = \
                                         student_object_try[stu].get_next_preference_without_change()
                                     counter += 1
+
 
                 elif not course_list[j].can_be_enroll(len(try_to_enroll)):
                     # If the capacity is not let to enroll all student who put bid over that course
@@ -258,7 +269,7 @@ def algorithm(fixed, student_list, course_list, rounds=3):
     for i in range(rounds):
         round_data = ready_to_new_round(student_names, ranks)
         enroll_students(round_data, student_list, course_list)
-        second_phase(round_data, student_list, course_list, i)
+        second_phase(round_data, student_list, course_list, i, rounds)
 
 
 def main():
